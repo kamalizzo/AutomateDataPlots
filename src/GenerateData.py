@@ -17,11 +17,11 @@ class GenerateData:
         self.generated_path = self.generate_folder()
         self.generated_subfolder = self.generate_subfolder()
         self.generated_file_path = {}
-        self.curve_type = self._set_curve_type()
+        self.curve_type = self.__set_curve_type()
         # print(type(self.dict_df))
         # [print(type(d)) for k, d in self.dict_df.items()]
 
-    def _set_curve_type(self):
+    def __set_curve_type(self):
         if self.data_type == 'pc':
             ctype = 'Pol'
         elif self.data_type == 'eis':
@@ -106,6 +106,6 @@ class GenerateData:
         self.open_plots_folder(self.generated_path, 'all')
         path = os.path.join(os.getcwd())
         self.generate_compiled_pdf(path)
-        self.generate_files(path)
+        self.generate_files(path, filetype=['pdf', 'png'])
         self.generate_raw_data(path)
 

@@ -35,7 +35,8 @@ class ECData(ABC):
         self.index_list = [_ + 1 for _ in range(curves)] if curves is not None \
             else self.generate_list_curves()
         self.fname = fdir.split('/')[-1][:-6] if not filename else filename
-        self.data_type = self.set_datatype()
+        self.data_type = self._set_datatype()
+        self.generated_dict = {}
         self.generated_figures = {}
         self.test_stand = test_stand
         self.columns = kwargs.pop('column', [])
@@ -50,7 +51,7 @@ class ECData(ABC):
         return file_list[0]
 
     @abstractmethod
-    def set_datatype(self):
+    def _set_datatype(self):
         pass
 
     @abstractmethod
@@ -89,16 +90,18 @@ class ECData(ABC):
         ax2.set_ylabel('Prel [bar]; U [V]')
         self.generated_figures.\
             update({f'{self.fname} Measurement Plots':
-                    {'xls': True, 'fig': fig, 'kw': 'Ges_Messverlauf'}})
+                    {'axis': 'multi', 'fig': fig, 'kw': 'Ges_Messverlauf'}})
 
 
 class PolCurveData(ECData):
     def __init__(self, fdir, filename=None, curves=None, test_stand=1):
         super().__init__(fdir, filename, curves, test_stand)
         self.generate_datafigure()
+        self.generate_polarization_curve()
+        self.generate_hfr_curve()
 
     @classmethod
-    def set_datatype(cls):
+    def _set_datatype(cls):
         return 'pc'
 
     def generate_list_curves(self):
@@ -140,22 +143,70 @@ class PolCurveData(ECData):
                 dict_pol[f'{polar}'] = new_df.iloc[new_index_pol]
         return dict_pol, full_dict_pol
 
-    def generate_datafigure(self):
+    def generate_polarization_curve(self, xrange=(0, 5), yrange=(0, 1)):
+        fig = plt.figure(figsize=(13, 9), dpi=136)
+        ax1 = fig.add_subplot(111)
+
+        for key, val in self.dict_chosen_df.items():
+            cur = val['I Summe [A]'] / 25
+            vol = val['AI.U.E.Co.Tb.1 [V]']
+            ax1.plot(cur, vol, label=f'Pol{key}')
+            ax1.scatter(cur, vol)
+        line, label = ax1.get_legend_handles_labels()
+        ax1.legend(line, label, loc='upper center', bbox_to_anchor=(0.5, -0.05),
+                   fancybox=True, shadow=True, ncol=6)
+        plt.grid(True)
+        ax1.set_xlim(xrange)
+        ax1.set_xlabel('Current [A.cm-2]')
+        ax1.set_ylim(yrange)
+        ax1.set_ylabel('Voltage [V]')
+        self.generated_figures. \
+            update({f'{self.fname} Polarisation Curves':
+                    {'axis': 'single', 'fig': fig, 'kw': 'PolKurven'}})
+
+    def generate_hfr_curve(self, xrange=(0, 5), yrange=(0, 100)):
+        fig = plt.figure(figsize=(13, 9), dpi=136)
+        ax1 = fig.add_subplot(111)
+
+        for key, val in self.dict_chosen_df.items():
+            axis = []
+            cur = val['I Summe [A]'] / 25
+            hfr = val['HFR [mOhm]']
+            for h, c in zip(hfr, cur):
+                if h > 0:
+                    axis.append([c, h * 25])
+            ax_df = pd.DataFrame(axis, columns=['CD', 'HFR'])
+            ax1.plot(ax_df.values[:, 0], ax_df.values[:, 1], label=f'Pol{key}')
+            ax1.scatter(ax_df.values[:, 0], ax_df.values[:, 1])
+        line, label = ax1.get_legend_handles_labels()
+        ax1.legend(line, label, loc='upper center', bbox_to_anchor=(0.5, -0.05),
+                   fancybox=True, shadow=True, ncol=6)
+        plt.grid(True)
+        ax1.set_xlim(xrange)
+        ax1.set_xlabel('Current [A.cm-2]')
+        ax1.set_ylim(yrange)
+        ax1.set_ylabel('HFR [mOhm.cm²]')
+        self.generated_figures. \
+            update({f'{self.fname} High Frequency Resistance':
+                    {'axis': 'single', 'fig': fig, 'kw': 'HFR'}})
+
+    def generate_datafigure(self, xrange=(0, 5), yrange=(0, 1),
+                            y2range=(0, 100)):
         fig = plt.figure(figsize=(13, 9), dpi=136)
         ax1 = fig.add_subplot(111)
         ax2 = ax1.twinx()
 
         for key, val in self.dict_chosen_df.items():
             axis2 = []
-            if self.test_stand == 1:
-                cur = val['I Summe [A]'] / 25
-                vol = val['AI.U.E.Co.Tb.1 [V]']
-                hfr = val['HFR [mOhm]']
-            else:
-                data_column = self.columns
-                cur = val[:, data_column[0]]
-                vol = val[:, data_column[1]]
-                hfr = vol / cur
+            # if self.test_stand == 1:
+            cur = val['I Summe [A]'] / 25
+            vol = val['AI.U.E.Co.Tb.1 [V]']
+            hfr = val['HFR [mOhm]']
+            # else:
+            #     data_column = self.columns
+            #     cur = val[:, data_column[0]]
+            #     vol = val[:, data_column[1]]
+            #     hfr = vol / cur
             for h, c in zip(hfr, cur):
                 if h > 0:
                     axis2.append([c, h * 25])
@@ -172,15 +223,15 @@ class PolCurveData(ECData):
                    loc='upper center', bbox_to_anchor=(0.5, -0.05),
                    fancybox=True, shadow=True, ncol=6)
         plt.grid(True)
-        ax1.set_xlim([0, 5])
+        ax1.set_xlim(xrange)
         ax1.set_xlabel('Current [A.cm-2]')
-        ax1.set_ylim([0, 1])
+        ax1.set_ylim(yrange)
         ax1.set_ylabel('Voltage [V]')
-        ax2.set_ylim([0, 100])
+        ax2.set_ylim(y2range)
         ax2.set_ylabel('HFR [mOhm.cm²]')
         self.generated_figures. \
             update({f'{self.fname} Polarisation Curve and HFR':
-                    {'xls': True, 'fig': fig, 'kw': 'PolKurven'}})
+                    {'axis': 'multi', 'fig': fig, 'kw': 'PolKurven'}})
 
 
 class EISData(ECData):
@@ -188,7 +239,7 @@ class EISData(ECData):
         super().__init__(fdir, filename, curves, test_stand)
 
     @classmethod
-    def set_datatype(cls):
+    def _set_datatype(cls):
         return 'eis'
 
     def generate_list_curves(self):
@@ -198,5 +249,5 @@ class EISData(ECData):
         pass
 
 
-class AllData:
+class EISSimData:
     pass
