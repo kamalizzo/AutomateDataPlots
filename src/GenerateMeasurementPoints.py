@@ -105,7 +105,6 @@ class HumidityCalc(GasFlowCalc):
         self.sum_mol_min = self.o2_mol_min + self.n2_mol_min
         self.sat_pressure = self.calc_saturation_pressure()
         self.sat_pressure_mbar = self.sat_pressure / 100
-        # array values [anode, kathode]
         self.partial_pressures_h2o = self.sat_pressure_mbar * self.rel_hum / 100
         self.partial_pressures_o2 = self.calc_partial_pressure_gas('o2')
         self.partial_pressures_n2 = self.calc_partial_pressure_gas('n2')
@@ -117,6 +116,7 @@ class HumidityCalc(GasFlowCalc):
             self.total_mol_mins
         self.h2o_flows = self.h2o_mol_mins * self.c_dict['molmass_h2o'] * 60
 
+    # array values [anode, kathode]
     def set_relative_humidities(self, rhums=None):
         if rhums is None:
             rhum_array = \
@@ -173,6 +173,10 @@ class MeasurementPoints(HumidityCalc):
         super().__init__()
         self.data = {}
         self.currents = currents
+        self.columns = \
+            ['Current [A]', 'H2 [Nml/min]', 'H2O An [g/h]', 'Air [Nml/min]',
+             'H2O Ca [g/h]', 'Stoichiometry An', 'Stoichiometry Ca',
+             'Rel.Humidity An', 'Rel.Humidity Ca']
         self.data_update(currents, stoichiometries, humidities)
 
     def data_update(self, currents, stoichiometries, humidities):
@@ -183,8 +187,7 @@ class MeasurementPoints(HumidityCalc):
                 h2_flow = self.calc_flows_h2(stoi[0])
                 for hum in humidities:
                     self.calc_flows_h2o(hum)
-                    case = f'Anode S_{stoi[0]} H_{hum[0]} ' \
-                           f'Cathode S_{stoi[1]} H_{hum[1]}'
+                    case = f'S_A{stoi[0]}_C{stoi[1]} H_A{hum[0]}_C{hum[1]}'
                     if case in self.data:
                         self.data[case].append(
                             [cur, h2_flow, self.h2o_flows[0], air_flow,
@@ -198,9 +201,7 @@ class MeasurementPoints(HumidityCalc):
 
     def generate_table(self, fname='compiled_table'):
         pdf = matplotlib.backends.backend_pdf.PdfPages(f'{fname}.pdf')
-        col = ['Current [A]', 'H2 [Nml/min]', 'H2O An [g/h]', 'Air [Nml/min]',
-               'H2O Ca [g/h]', 'Stoichiometry An', 'Stoichiometry Ca',
-               'Rel.Humidity An', 'Rel.Humidity Ca']
+
         row = [x for x in range(len(self.currents))]
         for key, val in self.data.items():
             # data_array = np.asarray(val)
@@ -221,11 +222,19 @@ class MeasurementPoints(HumidityCalc):
             fig = plt.figure(figsize=(10, 8), dpi=136)
             ax = fig.add_subplot()
             ax.set_axis_off()
-            ax.table(cellText=val, rowLabels=row, colLabels=col,
+            ax.table(cellText=val, rowLabels=row, colLabels=self.columns,
                      cellLoc='center', loc='upper left')
             fig.suptitle(f'{key}')
             pdf.savefig(fig)
         pdf.close()
+
+    def generate_xlsx(self, fname='compiled_xls'):
+        writer = pd.ExcelWriter(f'{fname}.xlsx', engine='xlsxwriter')
+        for key, d in self.data.items():
+            arr_d = np.asarray(d)
+            df = pd.DataFrame(arr_d, columns=self.columns)
+            df.to_excel(writer, sheet_name=f'{key}')
+        writer.save()
 
 
 
