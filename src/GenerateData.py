@@ -10,8 +10,9 @@ class GenerateData:
         self.data_obj = obj
         self.folder_path = getattr(self.data_obj, 'wdir')
         self.fname: str = getattr(self.data_obj, 'fname')
-        self.data_type = getattr(self.data_obj, 'data_type')
+        self.data_type = getattr(self.data_obj, '_data_type')
         self.dict_df = getattr(self.data_obj, 'dict_full_df')
+        self.chosen_df = getattr(self.data_obj, 'dict_chosen_df')
         self.dataframe = getattr(self.data_obj, 'dataframe')
         self.generated_figures = getattr(self.data_obj, 'generated_figures')
         self.generated_path = self.generate_folder()
@@ -78,7 +79,17 @@ class GenerateData:
     #             worksheet.insert_image('A1', 'Hello world')
     #             workbook.close()
 
-    def generate_raw_data(self, path=None):
+    def generate_raw_data(self, df_dict, path=None):
+        if path is None:
+            path = self.generated_path
+        self.open_plots_folder(path, 'generated_rawdata')
+        writer = pd.ExcelWriter(f'{self.fname}_rawdata.xlsx',
+                                engine='xlsxwriter')
+        for key, val in self.dict_df.items():
+            val.to_excel(writer, sheet_name=f'generated_{key}')
+        writer.save()
+
+    def generate_all_raw_data(self, path=None):
         if path is None:
             path = self.generated_path
         self.open_plots_folder(path, 'generated_rawdata')
@@ -98,7 +109,8 @@ class GenerateData:
                                                      f'.pdf')
         for title, file in self.generated_figures.items():
             fig = file['fig']
-            fig.suptitle(f'{title}')
+            fig_type = file['kw']
+            fig.suptitle(f'{title} - {fig_type}')
             pdf.savefig(fig)
         pdf.close()
 
@@ -107,5 +119,10 @@ class GenerateData:
         path = os.path.join(os.getcwd())
         self.generate_compiled_pdf(path)
         self.generate_files(path, filetype=['pdf', 'png'])
-        self.generate_raw_data(path)
+        # self.generate_all_raw_data(path)
+
+    def generate_files_only(self):
+        self.open_plots_folder(self.generated_path, 'generated_pc')
+        path = os.path.join(os.getcwd())
+        self.generate_files(path, filetype=['pdf'])
 
