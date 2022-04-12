@@ -8,8 +8,9 @@ from src.DataProcessing import ECData, Plot
 
 
 class EISData(ECData):
-    def __init__(self, fdir, filename=None, curves=None):
+    def __init__(self, fdir, filename=None, curves=None, shift=0):
         super().__init__(fdir, filename, curves)
+        # self.phase_shift_corrector(shift)
         self.generate_datafigure()
 
     @classmethod
@@ -42,29 +43,31 @@ class EISData(ECData):
         return self.dataframe
 
     @staticmethod
-    def to_bode(df_dict, signal='1'):
+    def to_bode(df_dict, shift=0, signal='1'):
         eis_dict = {}
         curve = str(signal) if not isinstance(signal, str) else signal
         if isinstance(df_dict, pd.DataFrame):
-            magnitude = \
-                np.sqrt(df_dict['Real'] +
-                        df_dict['Imaginary'])
-            pshift = np.arctan(df_dict['Imaginary'] /
-                               df_dict['Real'])
+            real = df_dict['real [ohm]']
+            imag = df_dict['imag [ohm]']
+            magnitude = np.sqrt(real + imag)
+            pshift = np.arctan(imag / real)
             for i, val in enumerate(pshift):
-                pshift[i] = abs(val)
+                pshift[i] = abs(val+shift)
             eis_dict.update(
                 {f'{curve}':
-                 pd.DataFrame({'Frequency': df_dict['Frequency'],
-                               'Magnitude': magnitude, 'Phase Shift': pshift})})
+                 pd.DataFrame({'freq meas [Hz]': df_dict['freq meas [Hz]'],
+                               'real [ohm]': real, 'imag [ohm]': imag,
+                               'impedance [ohm]': magnitude,
+                               'phase [deg]': pshift})})
         elif isinstance(df_dict, dict):
-            for key, val in df_dict:
-                EISData.to_bode(val, key)
+            for key, val in df_dict.items():
+                EISData.to_bode(val, shift, key)
         return eis_dict
 
-    def generate_bodes(self, xrange=(0.1, 50100), yrange=(0.0005, 0.014),
-                       y2range=(0, 90)):
-        for key, val in self.dataframe.items():
+    def generate_bodes(self, df=None, xrange=(0.1, 50100),
+                       yrange=(0.0005, 0.014), y2range=(0, 90)):
+        eis_df = self.dataframe if df is None else df
+        for key, val in eis_df.items():
             fig = plt.figure(figsize=(13, 9), dpi=136)
             ax1 = fig.add_subplot(111)
             ax1.semilogx()
@@ -77,7 +80,8 @@ class EISData(ECData):
                 imp = signal['impedance [ohm]']
                 pshift = signal['phase [deg]']
                 for i, abs_v in enumerate(pshift):
-                    pshift[i] = abs(abs_v)
+                    new_v = abs_v
+                    pshift[i] = abs(new_v)
                 ax1.plot(freq, imp, label=f'{key}-{k[0]}A |Z|')
                 ax1.scatter(freq, imp, marker='.')
                 ax2.plot(freq, pshift, label=f'{key}-{k[0]}A |°|',
@@ -104,10 +108,9 @@ class EISData(ECData):
                         {'axis': 'multi', 'fig': fig, 'kw': 'EISKurven'}})
             plt.close(fig)
 
-    def generate_bodes_current(self, xrange=(0.1, 50100), yrange=(0.0005,
-                                                                  0.014),
-                               y2range=(0, 90)):
-        eis_df = self.dataframe
+    def generate_bodes_current(self, df=None, xrange=(0.1, 50100),
+                               yrange=(0.0005, 0.014), y2range=(0, 90)):
+        eis_df = self.dataframe if df is None else df
         for cur in [1, 2, 3]:
             num_col = 0
             fig = plt.figure(figsize=(13, 9), dpi=136)
@@ -150,12 +153,30 @@ class EISData(ECData):
                         {'axis': 'multi', 'fig': fig, 'kw': 'EISKurven'}})
             plt.close(fig)
 
-    def to_nyquist(self):
-        pass
+    def to_nyquist(self, df_dict=None, shift=0, signal='1'):
+        eis_dict = {}
+        curve = str(signal) if not isinstance(signal, str) else signal
+        if isinstance(df_dict, pd.DataFrame):
+            pshift = df_dict['phase [deg]'] + shift
+            impedanz = df_dict['impedance [ohm]']
+            # for i, val in enumerate(pshift):
+            #     pshift[i] = abs(val)
+            eis_dict.update(
+                {f'{curve}':
+                 pd.DataFrame({'freq meas [Hz]': df_dict['freq meas [Hz]'],
+                               'real [ohm]': impedanz * np.cos(pshift),
+                               'imag [ohm]': impedanz * np.sin(pshift),
+                               'impedance [ohm]': impedanz,
+                               'phase [deg]': pshift})})
+            return eis_dict
+        elif isinstance(df_dict, dict):
+            for key, val in df_dict.items():
+                EISData.to_nyquist(val, shift, key)
 
-    def generate_nyquists(self, xrange=(0.0005, 0.014),
+    def generate_nyquists(self, df=None, xrange=(0.0005, 0.014),
                           yrange=(0.0005, -0.0040)):
-        for key, val in self.dataframe.items():
+        eis_df = self.dataframe if df is None else df
+        for key, val in eis_df.items():
             fig = plt.figure(figsize=(13, 9), dpi=136)
             ax1 = fig.add_subplot(111)
             ax1.invert_yaxis()
@@ -165,7 +186,7 @@ class EISData(ECData):
                 real = signal['real [ohm]']
                 img = signal['imag [ohm]']
                 ax1.plot(real, img, label=f'{key}-{k[0]}A')
-                ax1.scatter(real, img)
+                ax1.scatter(real, img, marker='.')
 
             line, label = ax1.get_legend_handles_labels()
             ax1.legend(line, label, loc='upper center',
@@ -181,9 +202,9 @@ class EISData(ECData):
                         {'axis': 'multi', 'fig': fig, 'kw': 'EISKurven'}})
             plt.close(fig)
 
-    def generate_nyquists_current(self,  xrange=(0.0005, 0.014),
+    def generate_nyquists_current(self,  df=None, xrange=(0.0005, 0.014),
                                   yrange=(0.0005, -0.0040)):
-        eis_df = self.dataframe
+        eis_df = self.dataframe if df is None else df
         for cur in [1, 2, 3]:
             num_col = 0
             fig = plt.figure(figsize=(13, 9), dpi=136)
@@ -196,7 +217,7 @@ class EISData(ECData):
                         real = signal['real [ohm]']
                         img = signal['imag [ohm]']
                         ax1.plot(real, img, label=f'{key}-{k[0]}A')
-                        ax1.scatter(real, img)
+                        ax1.scatter(real, img, marker='.')
             line, label = ax1.get_legend_handles_labels()
             ax1.legend(line, label, loc='upper center',
                        bbox_to_anchor=(0.5, -0.06), ncol=num_col)
@@ -216,6 +237,35 @@ class EISData(ECData):
         self.generate_bodes_current()
         self.generate_nyquists()
         self.generate_nyquists_current()
+
+    def phase_shift_corrector(self, shift=0):
+        new_dict = {}
+        for key, val in self.dataframe.items():
+            for k, v in val.items():
+                pshift = v['phase [deg]'].to_numpy() + shift
+                pshift_rad = np.radians(pshift)
+                impedanz = v['impedance [ohm]'].to_numpy()
+
+                real = impedanz * np.cos(pshift_rad)
+                imag = impedanz * np.sin(pshift_rad)
+                # for i, val in enumerate(pshift):
+                #     pshift[i] = abs(val)
+                if key in new_dict:
+                    new_dict[key].update(
+                        {k: pd.DataFrame(
+                            {'freq meas [Hz]': v['freq meas [Hz]'].tolist(),
+                             'real [ohm]': real.tolist(),
+                             'imag [ohm]': imag.tolist(),
+                             'impedance [ohm]': impedanz.tolist(),
+                             'phase [deg]': pshift.tolist()})})
+                else:
+                    new_dict[key] = {k: pd.DataFrame(
+                            {'freq meas [Hz]': v['freq meas [Hz]'].tolist(),
+                             'real [ohm]': real.tolist(),
+                             'imag [ohm]': imag.tolist(),
+                             'impedance [ohm]': impedanz.tolist(),
+                             'phase [deg]': pshift.tolist()})}
+        self.dataframe = new_dict
 
 
 class EISSimData:

@@ -50,7 +50,7 @@ class PC1(PolCurveData):
         return num_polcurve_list
 
     def generate_full_dict(self):
-        dict_pol = {}
+        # dict_pol = {}
         full_dict_pol = {}
         pol_list = self.index_list
 
@@ -90,40 +90,59 @@ class PC1(PolCurveData):
     def generate_chosen_dict(self):
         dict_chosen = {}
         for key, value in self.dict_full_df.items():
-            ind_chosen = []
-            cur = value['I Summe [A]']
-            vol = value['AI.U.E.Co.Tb.1 [V]']
-            hfr = value['HFR [mOhm]']
-            for ind, (c, v, h) in enumerate(zip(cur, vol, hfr)):
-                if h > 0:
-                    ind_chosen.append(ind)
+            # ind_chosen = []
+            # cur = value['I Mittel [A]']
+            # vol = value['U Mittel [V]']
+            # hfr = value['HFR [mOhm]']
+            # for ind, (c, v, h) in enumerate(zip(cur, vol, hfr)):
+            #     if h > 0:
+            #         ind_chosen.append(ind)
 
-            new_df = value.iloc[ind_chosen]
-            cur = new_df['I Summe [A]']
-            vol = new_df['AI.U.E.Co.Tb.1 [V]']
-            hfr = new_df['HFR [mOhm]']
-            nrow = 0
-            check_list = [[new_df.iloc[0, 4], new_df.iloc[0, 3]]]
-            new_array = 0
-            total_array = 0
-            for ind, (c, v, h) in enumerate(zip(cur, vol, hfr)):
-                check_val = [new_df.iloc[ind, 4], new_df.iloc[ind, 3]]
-                new_array += np.array([c, v, h*25]) if \
-                    isinstance(new_array, np.ndarray) else \
-                    np.array([c, v, h*25])
-                nrow += 1
-                if check_val not in check_list:
-                    check_list.append(check_val)
-                    new_array = new_array/nrow
+            # new_df = value.iloc[ind_chosen]
+            tme = value['T relativ [min]']
+            cur = value['I Mittel [A]']
+            vol = value['U Mittel [V]']
+            hfr = value['HFR [mOhm]']
+            t_bef = array_bef = total_array = hfr_bef = hfr_co = 0
+            for n_ind, (t, c, v, h) in enumerate(zip(tme, cur, vol, hfr)):
+                # new_index_pol = []  # To append chosen dict
+
+                hfr_now = (hfr_bef + h)/2 if hfr_bef > 0 else h
+                array_now = [[c, v, hfr_now]]
+                if n_ind == 0:
+                    hfr_bef = h
+                    t_bef = t
+                    array_bef = array_now
+                    continue
+
+                if t-t_bef > 1:
                     if isinstance(total_array, np.ndarray):
-                        total_array = \
-                            np.append(total_array,
-                                      np.reshape(new_array, (1, 3)), axis=0)
+                        if hfr_bef < 0:
+                            total_array = \
+                                np.append(total_array,
+                                          [[array_bef[0][0],array_bef[0][1],
+                                           hfr_co]],
+                                          axis=0)
+                        else:
+                            total_array = \
+                                np.append(total_array, array_bef, axis=0)
                     else:
-                        total_array = np.reshape(new_array, (1, 3))
-                    nrow = new_array = 0
+                        total_array = np.array(array_bef)
+
+                    hfr_co = h
+
+                if n_ind == len(value):
+                    total_array = \
+                        np.append(total_array, array_now, axis=0)
+
+                hfr_bef = h
+                array_bef = array_now
+
+                t_bef = t
+
             dict_chosen[key] = \
                 pd.DataFrame(total_array, columns=['CD', 'V', 'HFR'])
+
         return dict_chosen
 
     def generate_polarization_curve(self, xrange=(0, 5), yrange=(0, 1)):
@@ -138,7 +157,9 @@ class PC1(PolCurveData):
         line, label = ax1.get_legend_handles_labels()
         ax1.legend(line, label, loc='upper center', bbox_to_anchor=(0.5, -0.05),
                    fancybox=True, shadow=True, ncol=6)
+        ax1.minorticks_on()
         plt.grid(True)
+        ax1.grid(True, which='minor', color='lightgrey', linestyle='--')
         ax1.set_xlim(xrange)
         ax1.set_xlabel('Current [A.cm-2]')
         ax1.set_ylim(yrange)
@@ -155,12 +176,20 @@ class PC1(PolCurveData):
             axis = []
             cur = val['CD'] / 25
             hfr = val['HFR']
-            ax1.plot(cur, hfr, label=f'Pol{key}')
-            ax1.scatter(cur, hfr)
+            for h, c in zip(hfr, cur):
+                if h > 0:
+                    axis.append([c, h * 25])
+            ax_df = pd.DataFrame(axis, columns=['CD', 'HFR'])
+            # ax1.plot(cur, hfr, label=f'Pol{key}')
+            # ax1.scatter(cur, hfr)
+            ax1.plot(ax_df.values[:, 0], ax_df.values[:, 1], label=f'Pol{key}')
+            ax1.scatter(ax_df.values[:, 0], ax_df.values[:, 1])
         # line, label = ax1.get_legend_handles_labels()
         ax1.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),
                    fancybox=True, shadow=True, ncol=6)
+        ax1.minorticks_on()
         plt.grid(True)
+        ax1.grid(True, which='minor', color='lightgrey', linestyle='--')
         ax1.set_xlim(xrange)
         ax1.set_xlabel('Current [A.cm-2]')
         ax1.set_ylim(yrange)
@@ -179,11 +208,19 @@ class PC1(PolCurveData):
             cur = val['CD'] / 25
             vol = val['V']
             hfr = val['HFR']
+            for h, c in zip(hfr, cur):
+                if h > 0:
+                    axis2.append([c, h * 25])
+            ax_df = pd.DataFrame(axis2, columns=['CD', 'HFR'])
+            hfr = val['HFR']
             ax1.plot(cur, vol, label=f'Pol{key}')
             ax1.scatter(cur, vol)
-            ax2.plot(cur, hfr, label=f'HFR{key}',
+            # ax2.plot(cur, hfr, label=f'HFR{key}',
+            #          linestyle='--')
+            # ax2.scatter(cur, hfr)
+            ax2.plot(ax_df.values[:, 0], ax_df.values[:, 1], label=f'HFR{key}',
                      linestyle='--')
-            ax2.scatter(cur, hfr)
+            ax2.scatter(ax_df.values[:, 0], ax_df.values[:, 1])
 
         line, label = ax1.get_legend_handles_labels()
         line2, label2 = ax2.get_legend_handles_labels()
@@ -273,3 +310,4 @@ class PC2(PolCurveData):
 
     def generate_datafigure(self):
         pass
+    
