@@ -119,7 +119,7 @@ class GenerateData:
         path = os.path.join(os.getcwd())
         self.generate_compiled_pdf(path)
         self.generate_files(path, filetype=['pdf', 'png'])
-        # self.generate_all_raw_data(path)
+        self.generate_all_raw_data(path)
 
     def generate_files_only(self):
         self.open_plots_folder(self.generated_path, 'generated_pc')

@@ -11,7 +11,7 @@ class EISData(ECData):
     def __init__(self, fdir, filename=None, curves=None, shift=0):
         super().__init__(fdir, filename, curves)
         # self.phase_shift_corrector(shift)
-        self.generate_datafigure()
+        # self.generate_datafigure()
 
     @classmethod
     def _set_datatype(cls):
@@ -64,9 +64,9 @@ class EISData(ECData):
                 EISData.to_bode(val, shift, key)
         return eis_dict
 
-    def generate_bodes(self, df=None, xrange=(0.1, 50100),
-                       yrange=(0.0005, 0.014), y2range=(0, 90)):
-        eis_df = self.dataframe if df is None else df
+    def generate_bodes(self,  xrange=(0.1, 50100),
+                       yrange=(0.0005, 0.0014), y2range=(0, 90)):
+        eis_df = self.dataframe  # if df is None else df - df: dict = None,
         for key, val in eis_df.items():
             fig = plt.figure(figsize=(13, 9), dpi=136)
             ax1 = fig.add_subplot(111)
@@ -108,9 +108,9 @@ class EISData(ECData):
                         {'axis': 'multi', 'fig': fig, 'kw': 'EISKurven'}})
             plt.close(fig)
 
-    def generate_bodes_current(self, df=None, xrange=(0.1, 50100),
-                               yrange=(0.0005, 0.014), y2range=(0, 90)):
-        eis_df = self.dataframe if df is None else df
+    def generate_bodes_current(self, xrange=(0.1, 50100),
+                               yrange=(0.0005, 0.0014), y2range=(0, 90)):
+        eis_df = self.dataframe  # if df is None else df - df: dict = None,
         for cur in [1, 2, 3]:
             num_col = 0
             fig = plt.figure(figsize=(13, 9), dpi=136)
@@ -173,9 +173,9 @@ class EISData(ECData):
             for key, val in df_dict.items():
                 EISData.to_nyquist(val, shift, key)
 
-    def generate_nyquists(self, df=None, xrange=(0.0005, 0.014),
-                          yrange=(0.0005, -0.0040)):
-        eis_df = self.dataframe if df is None else df
+    def generate_nyquists(self, xrange=(0.0005, 0.014),
+                          yrange=(0.0005, -0.004)):
+        eis_df = self.dataframe # if df is None else df - df: dict = None,
         for key, val in eis_df.items():
             fig = plt.figure(figsize=(13, 9), dpi=136)
             ax1 = fig.add_subplot(111)
@@ -202,9 +202,9 @@ class EISData(ECData):
                         {'axis': 'multi', 'fig': fig, 'kw': 'EISKurven'}})
             plt.close(fig)
 
-    def generate_nyquists_current(self,  df=None, xrange=(0.0005, 0.014),
-                                  yrange=(0.0005, -0.0040)):
-        eis_df = self.dataframe if df is None else df
+    def generate_nyquists_current(self, xrange=(0.0005, 0.014),
+                                  yrange=(0.0005, -0.004)):
+        eis_df = self.dataframe # if df is None else df
         for cur in [1, 2, 3]:
             num_col = 0
             fig = plt.figure(figsize=(13, 9), dpi=136)
@@ -266,6 +266,15 @@ class EISData(ECData):
                              'impedance [ohm]': impedanz.tolist(),
                              'phase [deg]': pshift.tolist()})}
         self.dataframe = new_dict
+
+    def generate_nyqs(self, xrange=(0.0005, 0.014), yrange=(0.0005, -0.004)):
+        self.generate_nyquists(xrange, yrange)
+        self.generate_nyquists_current(xrange, yrange)
+
+    def generate_bods(self, xrange=(0.1, 50100), yrange=(0.0005, 0.0014),
+                      y2range=(0, 90)):
+        self.generate_bodes(xrange, yrange, y2range)
+        self.generate_bodes_current(xrange, yrange)
 
 
 class EISSimData:
