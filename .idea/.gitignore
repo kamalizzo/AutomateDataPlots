@@ -1,6 +1,9 @@
 # Default ignored files
 /shelf/
 /workspace.xml
+# Ignore ipynb and generated file
+*.ipynb
+*.pdf
 # Editor-based HTTP Client requests
 /httpRequests/
 # Datasource local storage ignored files
