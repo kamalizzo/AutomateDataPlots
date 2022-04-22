@@ -100,7 +100,7 @@ class PC1(PolCurveData):
 
             # new_df = value.iloc[ind_chosen]
             tme = value['T relativ [min]']
-            cur = value['I Mittel [A]']
+            cur = value['I Summe [A]']
             vol = value['U Mittel [V]']
             hfr = value['HFR [mOhm]']
             t_bef = array_bef = total_array = hfr_bef = hfr_co = 0
@@ -131,7 +131,7 @@ class PC1(PolCurveData):
 
                     hfr_co = h
 
-                if n_ind == len(value):
+                if n_ind == len(value.index)-1:
                     total_array = \
                         np.append(total_array, array_now, axis=0)
 
