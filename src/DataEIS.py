@@ -5,13 +5,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from src.DataProcessing import ECData, Plot
+from src import DataStr as ds, GenerateData as gd
 
 
 class EISData(ECData):
     def __init__(self, fdir, filename=None, curves=None, shift=0):
         super().__init__(fdir, filename, curves)
         # self.phase_shift_corrector(shift)
-        # self.generate_datafigure()
+        self.generate_datafigure()
 
     @classmethod
     def _set_datatype(cls):
@@ -42,6 +43,22 @@ class EISData(ECData):
     def generate_chosen_dict(self):
         return self.dataframe
 
+    def gamry_to_zplot(self):
+        gd.GenerateData.open_plots_folder(self.wdir, 'to_zplot')
+        for (fd, fl) in zip(self.fdir, self.file_list):
+            df_gamry = pd.read_csv(fd, encoding='ISO-8859-1', sep='\t',
+                                   decimal=',', skiprows=21, low_memory=False)
+            with open(os.getcwd()+'/'+fl[:-4]+'_to_zplot.txt', 'w') as f:
+                for line in ds.zplot_str:
+                    f.write(line)
+                for (freq, real, imag) in zip(df_gamry['freq [Hz]'],
+                                              df_gamry["real [ohm]"],
+                                              df_gamry["imag [ohm]"]):
+                    f.write(f'{round(freq, 2)}\t0.00E+00\t0'
+                            f'.00E+00\t0\t{round(real * 25, 6)}\t'
+                            f'{"{:.2e}".format(imag * 25)}\t0'
+                            f'.00E+00\t0\t0\n')
+
     @staticmethod
     def to_bode(df_dict, shift=0, signal='1'):
         eis_dict = {}
@@ -65,7 +82,7 @@ class EISData(ECData):
         return eis_dict
 
     def generate_bodes(self,  xrange=(0.1, 50100),
-                       yrange=(0.0005, 0.0014), y2range=(0, 90)):
+                       yrange=(0.0005, 0.03), y2range=(0, 90)):
         eis_df = self.dataframe  # if df is None else df - df: dict = None,
         for key, val in eis_df.items():
             fig = plt.figure(figsize=(13, 9), dpi=136)
@@ -104,12 +121,12 @@ class EISData(ECData):
             ax2.set_ylim(y2range)
             ax2.set_ylabel('|Phase Shift| [°]')
             self.generated_figures. \
-                update({f'{key} Bode Plots':
+                update({f'{self.fname} {key} Bode Plots':
                         {'axis': 'multi', 'fig': fig, 'kw': 'EISKurven'}})
             plt.close(fig)
 
     def generate_bodes_current(self, xrange=(0.1, 50100),
-                               yrange=(0.0005, 0.0014), y2range=(0, 90)):
+                               yrange=(0.0005, 0.03), y2range=(0, 90)):
         eis_df = self.dataframe  # if df is None else df - df: dict = None,
         for cur in [1, 2, 3]:
             num_col = 0
@@ -149,7 +166,7 @@ class EISData(ECData):
             ax2.set_ylim(y2range)
             ax2.set_ylabel('|Phase Shift| [°]')
             self.generated_figures. \
-                update({f'{cur}A Bode Plots':
+                update({f'{self.fname} {cur}A Bode Plots':
                         {'axis': 'multi', 'fig': fig, 'kw': 'EISKurven'}})
             plt.close(fig)
 
@@ -173,8 +190,8 @@ class EISData(ECData):
             for key, val in df_dict.items():
                 EISData.to_nyquist(val, shift, key)
 
-    def generate_nyquists(self, xrange=(0.0005, 0.014),
-                          yrange=(0.0005, -0.004)):
+    def generate_nyquists(self, xrange=(0.0005, 0.03),
+                          yrange=(0.0005, -0.012)):
         eis_df = self.dataframe # if df is None else df - df: dict = None,
         for key, val in eis_df.items():
             fig = plt.figure(figsize=(13, 9), dpi=136)
@@ -185,7 +202,7 @@ class EISData(ECData):
                 num_col += 1
                 real = signal['real [ohm]']
                 img = signal['imag [ohm]']
-                ax1.plot(real, img, label=f'{key}-{k[0]}A')
+                ax1.plot(real, img, label=f'{key}-{k[0]}A/cm²')
                 ax1.scatter(real, img, marker='.')
 
             line, label = ax1.get_legend_handles_labels()
@@ -198,12 +215,12 @@ class EISData(ECData):
             ax1.set_ylim(yrange)
             ax1.set_ylabel('Imaginary Impedance Z-Im')
             self.generated_figures. \
-                update({f'{key} Nyquist Plots':
+                update({f'{self.fname} {key} Nyquist Plots':
                         {'axis': 'multi', 'fig': fig, 'kw': 'EISKurven'}})
             plt.close(fig)
 
-    def generate_nyquists_current(self, xrange=(0.0005, 0.014),
-                                  yrange=(0.0005, -0.004)):
+    def generate_nyquists_current(self, xrange=(0.0005, 0.03),
+                                  yrange=(0.0005, -0.012)):
         eis_df = self.dataframe # if df is None else df
         for cur in [1, 2, 3]:
             num_col = 0
@@ -228,7 +245,7 @@ class EISData(ECData):
             ax1.set_ylim(yrange)
             ax1.set_ylabel('Imaginary Impedance Z-Im')
             self.generated_figures. \
-                update({f'{cur}A Nyquist Plots':
+                update({f'{self.fname} {cur}A Nyquist Plots':
                         {'axis': 'multi', 'fig': fig, 'kw': 'EISKurven'}})
             plt.close(fig)
 

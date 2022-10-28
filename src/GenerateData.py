@@ -34,6 +34,7 @@ class GenerateData:
 
     def generate_folder(self):
         os.chdir(self.folder_path)
+        folder_n = 'generated'
         if not os.path.exists('generated'):
             os.makedirs('generated')
         return os.path.join(os.getcwd(), 'generated')
@@ -49,7 +50,7 @@ class GenerateData:
         os.chdir(path)
         if not os.path.exists(f'{folder}'):
             os.makedirs(f'{folder}')
-        os.chdir(os.path.join(os.getcwd(), f'{folder}'))
+        return os.chdir(os.path.join(os.getcwd(), f'{folder}'))
 
     def generate_files(self, path=None, filetype=None):
         if filetype is None:
@@ -100,12 +101,15 @@ class GenerateData:
             val.to_excel(writer, sheet_name=f'{self.curve_type}{key}')
         writer.save()
 
-    def generate_compiled_pdf(self, path=None, filetype='pdf'):
+    def generate_compiled_pdf(self, fname=None, path=None,
+                              filetype='pdf'):
+        if fname is None:
+            fname = self.fname
         if path is None:
             path = self.generated_subfolder
         self.open_plots_folder(path, filetype)
         pdf = \
-            matplotlib.backends.backend_pdf.PdfPages(f'compiled_{self.fname}'
+            matplotlib.backends.backend_pdf.PdfPages(f'compiled_{fname}'
                                                      f'.pdf')
         for title, file in self.generated_figures.items():
             fig = file['fig']
@@ -117,9 +121,9 @@ class GenerateData:
     def generate_all(self):
         self.open_plots_folder(self.generated_path, 'all')
         path = os.path.join(os.getcwd())
-        self.generate_compiled_pdf(path)
+        # self.generate_compiled_pdf(path)
         self.generate_files(path, filetype=['pdf', 'png'])
-        self.generate_all_raw_data(path)
+        # self.generate_all_raw_data(path)
 
     def generate_files_only(self):
         self.open_plots_folder(self.generated_path, 'generated_pc')

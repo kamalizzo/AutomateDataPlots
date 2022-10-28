@@ -26,6 +26,7 @@ class ECData(ABC):
     def __init__(self, fdir, filename=None, curves=None, **kwargs):
         self.wdir = fdir
         self.fdir = self.access_fdir(fdir)
+        self.file_list = self.gen_file_list()
         self.dataframe = self.set_dataframe()
         self.index_list = [_ + 1 for _ in range(curves)] if curves is not None \
             else self.generate_list_curves()
@@ -39,8 +40,16 @@ class ECData(ABC):
 
     @staticmethod
     def access_fdir(fdir):
-        return glob.glob(f"{fdir}/*" + "*.txt") if fdir[-4:] != '.txt' \
+        return glob.glob(f"{fdir}/01*" + "*.txt") if fdir[-4:] != '.txt' \
             else [fdir]
+
+    def gen_file_list(self):
+        f_list = []
+        for fdir_str in self.fdir:
+            new_str = fdir_str.split('/')[-1].split('\\')[-1]
+            f_list.append(new_str)
+
+        return f_list
 
     def generate_file_list(self):
         file_list = []
