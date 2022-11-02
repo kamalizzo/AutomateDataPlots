@@ -1,5 +1,6 @@
 # AutomateDataPlots
  Process raw data and generate plots for thesis purpose.
+ Run the main.py to process data.
 
 Current Implementation:
 1) Generate raw data in xlsx file
