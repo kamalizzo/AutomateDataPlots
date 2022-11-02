@@ -7,67 +7,28 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 if __name__ == "__main__":
+
     # Generate Plots and Data Process
-    # # data = PolCurveData("C:/Users/kamal/Thesis-ZBT/datas/01_VV_datas")
-    # data_c1 = PolCurveData("C:/Users/kamal/Thesis-ZBT/datas/04_VV_datas/datas",
-    #                        'Case 3 [80⁰C]')
-    # # data_c1a = PolCurveData("C:/Users/kamal/Thesis-ZBT/datas/09/datas",
-    # #                         'Case 3 [80⁰C]')
-    data_c1 = PolCurveData("C:/Users/kamal/Thesis-ZBT/datas/12_60_3rd/datas",
-                           'Case 1 [60⁰C](June)')
-    # # data_c2 = PolCurveData("C:/Users/kamal/Thesis-ZBT/datas/05/datas",
-    # #                        'Case 1 [60⁰C]')
+    """Include the folder where the txt file of the measurement as the first argument/ kwarg fdir, 
+        the chosen name for the document in the second arg/kwarg filename e.g:"""
+    # data_1 = PolCurveData(fdir="C:/Users/kamal/Thesis-ZBT/datas/12_60_3rd/datas", filename='PC_1')
     #
-    # # data_c3 = PolCurveData('C:/Users/kamal/Thesis-ZBT/datas/10/datas',
-    # #                        'Case 3 [80⁰C](21. Mai)')
-    # # data_c3 = PolCurveData("C:/Users/kamal/Thesis-ZBT/datas/06_datas/datas",
-    # #                        'Case 2 [70⁰C]')
-    # # data_c3a = PolCurveData("C:/Users/kamal/Thesis-ZBT/datas/08/datas",
-    # #                         'Case 2 [70⁰C]')
-    # # print(data.dict_chosen_df['1'])
+    # data_2 = EISData(fdir="C:/Users/kamal/Thesis-ZBT/datas/04_VV_datas/eis", filename='EIS_1')
 
-    # data_3a = EISData("C:/Users/kamal/Thesis-ZBT/datas/04_VV_datas/eis",
-    #                   'Case 3 [80⁰C] (1st)')
-
-    # df = pd.read_csv("C:/Users/kamal/Thesis-ZBT/datas/12_60 "
-    #                  "3rd/datas/12_20220611.txt", encoding='ISO-8859-1',
-    #                  sep='\t', decimal=',')
-    # print(df)
-    # data_1a = EISData("C:/Users/kamal/Thesis-ZBT/datas/10_80 3rd/eis",
-    #                   'Case 3 [80⁰C] (1st)')
-    # data_1a.gamry_to_zplot()
-    # print(data_1a.fdir)
-    # tf = df
-
-
-
-    # data.generate_nyqs(xrange=(0.0005, 0.045), yrange=(0.001, -0.0175))
-    # data.generate_bods(yrange=(0.0005, 0.03))
-
-    # gen_data = GenerateData(data_c1a)
-    # # gen_data.generate_raw_data(gen_data.chosen_df)
-    # # gen_data.generate_compiled_pdf()
-    # gen_data.generate_all()
-    # gen_data.generate_all_raw_data()
-    # for key in data_c1.generated_figures.keys():
-    #     if 'Measurement Plots' in key:
-    #         hey = data_c1.generated_figures[key]['fig']
-    # plt.show()#
-    # gen_data = GenerateData(data_c1a)
-    # gen_data2 = GenerateData(data_c1)
-    # gen_data2.generate_compiled_pdf()
-
-    # gen_data2.generate_compiled_pdf('80_new')
-    # print(data_c3a.dict_chosen_df)
-    # print(data_c3.dict_chosen_df)
-    print(data_c1.dataframe)
-
-
-
-
-
+    # Generate Data of the Plots
+    """Include the object data_1 or data_2 inside the GenerateData class,
+        use method generate_files(ftype=['pdf', 'png', 'xls']) to generate file separately for each plots for each 
+        defined file type or generate_compiled_pdf() to compiled all plots in a single pdf"""
+    # gen_data = GenerateData(data_1)
+    # # if kwarg path/first argument is None, a generated folder will be included in the current working directory,
+    # # where all files will be generated in the folder, if filetype is None, 'pdf' will be generated
+    # gen_data.generate_files(filetype=['pdf', 'png'])  # or
+    # gen_data.generate_compiled_pdf()   # or
+    #
+    # gen_data.generate_all() # to generate all pdf and png of the plots in data_1/data_2
 
     # Generate Measuring Points for Measurements at Lab 6
+    """Measure mass flow (Nml/min) for air and hydrogen given the current points, stoichiometries and humidities"""
     # currents = [74.5, 49.5, 24.5]
     # stoichiometries = [(2, 2), (2, 5)]
     # humidities = [(75, 50), (75, 75), (75, 100)]

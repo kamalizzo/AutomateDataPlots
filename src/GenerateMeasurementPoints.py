@@ -204,21 +204,21 @@ class MeasurementPoints(HumidityCalc):
 
         row = [x for x in range(len(self.currents))]
         for key, val in self.data.items():
-            # data_array = np.asarray(val)
-            # df = \
-            #     pd.DataFrame(data_array,
-            #                  columns=['Current[A]', 'H2[Nml/min]',
-            #                           'H2O An[g/h]', 'Air[Nml/min]',
-            #                           'H2O Ca[g/h]', 'Stoichiometry An',
-            #                           'Stoichiometry Ca', 'Rel.Humidity An',
-            #                           'Rel.Humidity Ca'])
-            # ax = plt.subplot(111, frame_on=False)  # no visible frame
-            # ax.xaxis.set_visible(False)  # hide the x axis
-            # ax.yaxis.set_visible(False)  # hide the y axis
-            #
-            # table(ax, df, loc='center')  # where df is your data frame
-            # plt.rcParams.update({'font.size': 22})
-            # plt.savefig(f'{key}.png')
+            data_array = np.asarray(val)
+            df = \
+                pd.DataFrame(data_array,
+                             columns=['Current[A]', 'H2[Nml/min]',
+                                      'H2O An[g/h]', 'Air[Nml/min]',
+                                      'H2O Ca[g/h]', 'Stoichiometry An',
+                                      'Stoichiometry Ca', 'Rel.Humidity An',
+                                      'Rel.Humidity Ca'])
+            ax = plt.subplot(111, frame_on=False)  # no visible frame
+            ax.xaxis.set_visible(False)  # hide the x axis
+            ax.yaxis.set_visible(False)  # hide the y axis
+
+            table(ax, df, loc='center')  # where df is your data frame
+            plt.rcParams.update({'font.size': 22})
+            plt.savefig(f'{key}.png')
             fig = plt.figure(figsize=(10, 8), dpi=136)
             ax = fig.add_subplot()
             ax.set_axis_off()

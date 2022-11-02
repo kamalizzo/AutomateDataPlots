@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.backends.backend_pdf
-from xlsxwriter.workbook import Workbook
+# from xlsxwriter.workbook import Workbook
 
 
 class GenerateData:
@@ -59,7 +59,7 @@ class GenerateData:
             path = self.generated_subfolder
         for ftype in filetype:
             if ftype == 'xls':
-                continue
+                self.generate_raw_data()
             os.chdir(self.generated_subfolder)
             for title, file in self.generated_figures.items():
                 self.open_plots_folder(path, ftype)
@@ -69,16 +69,6 @@ class GenerateData:
                 self.generated_file_path.\
                     update({f'{ftype}-{title}':
                             os.path.join(os.getcwd(), f'{title}.{ftype}')})
-
-    # def generate_xls(self, filetype='xls'):
-    #     self.open_plots_folder(self.generated_subfolder, filetype)
-    #     self.generate_files(filetype=['png'])
-    #     for title, file in self.generated_figures.items():
-    #         if file['xls'] is True:
-    #             workbook = Workbook(f'{title}.xlsx')
-    #             worksheet = workbook.add_chartsheet(f'{kw}')
-    #             worksheet.insert_image('A1', 'Hello world')
-    #             workbook.close()
 
     def generate_raw_data(self, df_dict, path=None):
         if path is None:

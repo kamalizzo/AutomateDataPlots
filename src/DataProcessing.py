@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from abc import ABC, abstractmethod, ABCMeta
 import itertools
+from dataclasses import dataclass
 
 
 class Plot:
@@ -24,11 +25,11 @@ class Plot:
 
 class ECData(ABC):
     def __init__(self, fdir, filename=None, curves=None, **kwargs):
-        self.wdir = fdir
+        self.wdir: str = fdir
         self.fdir = self.access_fdir(fdir)
-        self.file_list = self.gen_file_list()
+        self.file_list: list = self.gen_file_list()
         self.dataframe = self.set_dataframe()
-        self.index_list = [_ + 1 for _ in range(curves)] if curves is not None \
+        self.index_list: list = [_ + 1 for _ in range(curves)] if curves is not None \
             else self.generate_list_curves()
         self.fname = fdir.split('/')[-1][:-6] if not filename else filename
         self._data_type = self._set_datatype()

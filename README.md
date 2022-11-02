@@ -9,3 +9,8 @@ Current Implementation:
 
 To be implemented:
 2) EISSimData class for simulated plots from equivalent circuit
+
+Packages/dependencies:
+1) pandas
+2) matplotlib
+3) numpy
