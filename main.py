@@ -1,7 +1,7 @@
-from src.DataPolCurve import PolCurveData, PC1, PC2
-from src.DataEIS import EISData
-from src.GenerateData import GenerateData
-from src.GenerateMeasurementPoints import GasFlowCalc, HumidityCalc, \
+from src.electrochem.DataPolCurve import PolCurveData, PC1, PC2
+from src.electrochem.DataEIS import EISData
+from src.electrochem.GenerateData import GenerateData
+from src.electrochem.GenerateMeasurementPoints import GasFlowCalc, HumidityCalc, \
     MeasurementPoints
 import matplotlib.pyplot as plt
 import pandas as pd
