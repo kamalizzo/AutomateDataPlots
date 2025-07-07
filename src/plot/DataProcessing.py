@@ -8,6 +8,8 @@ from typing import Mapping
 import itertools
 from dataclasses import dataclass
 from enum import Enum
+from deprecated import deprecated
+
 
 class Plot:
 
@@ -29,11 +31,22 @@ class DFType(Enum):
     csv = ".csv"
 
 
+class SingleMeasurementData(metaclass=ABCMeta):
+    def __init__(self, fdir, filename=None, sep=";", **kwargs):
+        self.fdir: str = fdir
+        self.fname = fdir.split('/')[-1][:-6] if not filename else filename
+        self.dataframe: pd.DataFrame = self.set_dataframe()
+
+    def set_dataframe(self):
+        return 
+    
+
+
 class ECData(metaclass=ABCMeta):
     def __init__(self, fdir, filename=None, curves=None, **kwargs):
         self.wdir: str = fdir
-        self.fdir = self.access_fdir(fdir)
-        self.file_list: list = self.gen_file_list()
+        self.fdir: list[str] = self.access_fdir(fdir)
+        self.file_list: list = self.generate_file_list()
         self.dataframe = self.set_dataframe()
         self.index_list: list = [_ + 1 for _ in range(curves)] if curves is not None \
             else self.generate_list_curves()
@@ -53,14 +66,15 @@ class ECData(metaclass=ABCMeta):
             else [fdir]
     
 
-    def gen_file_list(self):
+    def generate_file_list(self):
         f_list = []
         for fdir_str in self.fdir:
             new_str = fdir_str.split('/')[-1].split('\\')[-1]
             f_list.append(new_str)
         return f_list
 
-    def generate_file_list(self):
+    @deprecated(reason="Use generate_file_list")
+    def gen_file_list(self):
         file_list = []
         for file in self.fdir:
             if file[:2] not in file_list:
