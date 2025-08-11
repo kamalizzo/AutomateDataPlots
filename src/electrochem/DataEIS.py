@@ -20,8 +20,8 @@ class EISData(ECData):
     def _set_datatype(cls):
         return 'eis'
 
-    def set_dataframe(self, fdir=None) -> Mapping[str, pd.DataFrame]:
-        files = self.access_fdir(fdir) if fdir else self.fdir
+    def set_dataframe(self) -> Mapping[str, pd.DataFrame]:
+        files = self.access_fdir(self.fdir)
         fnames = [os.path.basename(x)
                   for x in glob.glob(f'{self.wdir}/*' + "*.txt")]
         eis_dict: Mapping[str, pd.DataFrame] = {}

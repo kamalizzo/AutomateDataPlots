@@ -35,7 +35,7 @@ class PC1(PolCurveData):
         super().__init__(fdir, filename, curves)
         self.generate_datafigure()
 
-    def set_dataframe(self, encoding='ISO-8859-1', decimal=',') -> pd.DataFrame:
+    def set_dataframe(self) -> pd.DataFrame:
         pd_list = []
         for datas in self.fdir:
             try:
@@ -435,7 +435,7 @@ class PC2(PolCurveData):
         self.measured_points = measured_points \
             if isinstance(measured_points, list) else [measured_points]
 
-    def set_dataframe(self, fdir=None):
+    def set_dataframe(self):
         return pd.read_csv(self.fdir, encoding='ISO-8859-1', sep='\t',
                            names=self.data_columns)
 

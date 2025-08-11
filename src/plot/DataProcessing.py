@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from abc import ABC, abstractmethod, ABCMeta
-from typing import Mapping
+from typing import Mapping, TypedDict, Union
 import itertools
 from dataclasses import dataclass
 from enum import Enum
@@ -28,6 +28,19 @@ class DFType(Enum):
     txt = ".txt"
     csv = ".csv"
 
+class DataType(Enum):
+    accel = "acceleration"
+    psd = "power_spectral_density"
+    polcurve = "polarisation_curve"
+    eis = "electrochemical_impedance_spectroscopy"
+
+class Datasets(TypedDict):
+    x: pd.Series
+    y: Mapping[str, pd.Series]
+
+class Datas(TypedDict):
+    datas: Mapping[DataType, Datasets]
+
 
 class ECData(metaclass=ABCMeta):
     def __init__(self, fdir, filename=None, curves=None, **kwargs):
@@ -46,6 +59,8 @@ class ECData(metaclass=ABCMeta):
         self.columns = kwargs.pop('column', [])
         self.dict_full_df = self.generate_full_dict()
         self.dict_chosen_df = self.generate_chosen_dict()
+
+        self.datas: Datas = set_datas()
 
     @staticmethod
     def access_fdir(fdir):
@@ -72,7 +87,15 @@ class ECData(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def set_dataframe(self, fdir=None) -> pd.DataFrame | Mapping[str, pd.DataFrame]:
+    def set_dataframe(self) -> pd.DataFrame | Mapping[str, pd.DataFrame]:
+        pass
+
+    @abstractmethod
+    def set_datas(self):
+        pass
+
+    @abstractmethod
+    def set_datasets(self):
         pass
 
     @abstractmethod
