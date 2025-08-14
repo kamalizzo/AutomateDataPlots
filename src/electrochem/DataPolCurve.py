@@ -37,10 +37,11 @@ class PC1(PolCurveData):
 
     def set_dataframe(self) -> pd.DataFrame:
         pd_list = []
-        for datas in self.fdir:
+        #encoding = 'ISO-8859-1', decimal = ','
+        for datas in self.fdirs:
             try:
-                d = pd.read_csv(datas, encoding=encoding, sep='\t',
-                                       decimal=decimal)
+                d = pd.read_csv(datas, encoding='ISO-8859-1', sep='\t',
+                                       decimal=',')
             except DtypeWarning as e:
                 location2 = self.wdir + '/output.txt'
                 with open(datas, "r", encoding='ISO-8859-1') as f, \
@@ -436,7 +437,7 @@ class PC2(PolCurveData):
             if isinstance(measured_points, list) else [measured_points]
 
     def set_dataframe(self):
-        return pd.read_csv(self.fdir, encoding='ISO-8859-1', sep='\t',
+        return pd.read_csv(self.fdirs, encoding='ISO-8859-1', sep='\t',
                            names=self.data_columns)
 
     def generate_list_curves(self):

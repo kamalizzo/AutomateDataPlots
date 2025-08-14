@@ -21,7 +21,7 @@ class EISData(ECData):
         return 'eis'
 
     def set_dataframe(self) -> Mapping[str, pd.DataFrame]:
-        files = self.access_fdir(self.fdir)
+        files = self.access_fdir(self.fdirs)
         fnames = [os.path.basename(x)
                   for x in glob.glob(f'{self.wdir}/*' + "*.txt")]
         eis_dict: Mapping[str, pd.DataFrame] = {}
@@ -47,7 +47,7 @@ class EISData(ECData):
 
     def gamry_to_zplot(self):
         gd.GenerateData.open_plots_folder(self.wdir, 'to_zplot')
-        for (fd, fl) in zip(self.fdir, self.file_list):
+        for (fd, fl) in zip(self.fdirs, self.file_list):
             df_gamry = pd.read_csv(fd, encoding='ISO-8859-1', sep='\t',
                                    decimal=',', skiprows=21, low_memory=False)
             with open(os.getcwd()+'/'+fl[:-4]+'_to_zplot.txt', 'w') as f:
