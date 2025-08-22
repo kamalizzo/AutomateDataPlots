@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from typing import Mapping
-from src.plot.DataProcessing import ECData, Plot
+from src.plot.DataProcessing import ECData, Plot, DataType
 import src.electrochem.GenerateData as gd
 
 
@@ -18,7 +18,7 @@ class EISData(ECData):
 
     @classmethod
     def _set_datatype(cls):
-        return 'eis'
+        return DataType.eis
 
     def set_dataframe(self) -> Mapping[str, pd.DataFrame]:
         files = self.access_fdir(self.fdirs)

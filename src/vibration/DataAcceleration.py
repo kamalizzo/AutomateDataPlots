@@ -14,15 +14,15 @@ from scipy.signal import welch
 
 
 class AccelerationData(ECData, ABC):
-    def __new__(cls, fdir, filename=None, data_source=None, **kwargs):
+    def __new__(cls, fdir, fdirs=None, filename=None, data_source=None, **kwargs):
         return super(AccelerationData, cls).__new__(AC2) if data_source == "Lab" else super(AccelerationData, cls).__new__(AC1)
 
-    def __init__(self, fdir, filename=None, **kwargs):
+    def __init__(self, fdir, fdirs=None, filename=None, **kwargs):
         super().__init__(fdir, filename, **kwargs)
 
     @classmethod
     def _set_datatype(cls):
-        return 'vib'
+        return DataType.accel
 
     @staticmethod
     def __set_data_dict(datas: Datas):
@@ -141,11 +141,6 @@ class AC2(AccelerationData):
     
     def set_datasets(self):
         pass
-        # self.datasets: Datasets = {'x': self.dataframe[''], 
-        #                            'y': {'accX': self.dataframe['AccX'].astype(float),
-        #                                  'accY': self.dataframe['AccY'].astype(float),
-        #                                  'accZ': self.dataframe['AccZ'].astype(float) - 1.0},
-        #                            'type': DataType.accel}
     
     def generate_list_curves(self):
         return super().generate_list_curves()

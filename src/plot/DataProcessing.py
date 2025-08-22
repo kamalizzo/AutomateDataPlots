@@ -4,7 +4,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from abc import ABC, abstractmethod, ABCMeta
-from typing import Mapping, TypedDict, Union, Literal, NotRequired, Dict
+from typing import Mapping, TypedDict, Union, Literal, Dict
+from typing_extensions import NotRequired
 import itertools
 from dataclasses import dataclass
 from enum import Enum
@@ -62,17 +63,16 @@ class Datas(TypedDict):
 
 
 class ECData(metaclass=ABCMeta):
-    def __init__(self, fdir, fdirs: dict[str, str] = None, filename=None, curves=None, **kwargs):
+    def __init__(self, fdir: str, fdirs=None, filename=None, curves=None, **kwargs):
         self.wdir: str = fdir
-        self.fdir: str = None if not fdirs else fdir
-        self.fdirs: list[str] | dict[str, str] = self.access_fdir(fdir) if fdirs is None else fdirs
+        self.fdir: str = fdir if fdirs is None else None
+        self.fdirs: list[str] | dict[str, str] = self.access_fdir() if fdirs is None else fdirs
         self.file_list: list = self.generate_file_list()
         self.dataframe = self.set_dataframe()
         self.index_list: list = [_ + 1 for _ in range(curves)] if curves is not None \
             else self.generate_list_curves()
         self.fname = fdir.split('/')[-1][:-6] if not filename else filename
-        self._data_type = self._set_datatype()
-
+        self._data_type: DataType = self._set_datatype()
         self.generated_dict = {}
         self.generated_figures = {}
         self.data_filetype: str = kwargs.pop('dftype', DFType.txt.name)
@@ -82,10 +82,9 @@ class ECData(metaclass=ABCMeta):
 
         self.datas: Datas = self.set_datas()
 
-    @staticmethod
-    def access_fdir(fdir):
-        return glob.glob(f"{fdir}/01*" + "*.txt") if fdir[-4:] != '.txt' \
-            else [fdir]
+    def access_fdir(self) -> list[str]:
+        return glob.glob(f"{self.fdir}/01*" + "*.txt") if self.fdir[-4:] != '.txt' and self._data_type == DataType.polcurve or self._data_type == DataType.eis \
+            else list(self.fdir)
 
     def generate_file_list(self):
         f_list = []

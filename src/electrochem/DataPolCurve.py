@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from abc import ABC, abstractmethod, ABCMeta
 from pandas.errors import DtypeWarning
-from src.plot.DataProcessing import ECData, Plot
+from src.plot.DataProcessing import ECData, Plot, DataType
 import warnings
 warnings.filterwarnings("error", category=DtypeWarning)
 
@@ -23,7 +23,7 @@ class PolCurveData(ECData, ABC):
 
     @classmethod
     def _set_datatype(cls):
-        return 'pc'
+        return DataType.polcurve
 
     @abstractmethod
     def generate_polarization_curve(self, xrange=(0, 5), yrange=(0, 1)):

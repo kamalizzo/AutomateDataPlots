@@ -11,7 +11,7 @@ if __name__ == "__main__":
     # Generate Plots and Data Process
     """Include the folder where the txt file of the measurement as the first argument/ kwarg fdir, 
         the chosen name for the document in the second arg/kwarg filename e.g:"""
-    # data_1 = PolCurveData(fdir="C:/Users/kamal/Thesis-ZBT/datas/12_60_3rd/datas", filename='PC_1')
+    data_1 = PolCurveData(fdir="C:/Users/kamal/Thesis-ZBT/datas/12_60_3rd/datas", filename='PC_1')
     #
     # data_2 = EISData(fdir="C:/Users/kamal/Thesis-ZBT/datas/04_VV_datas/eis", filename='EIS_1')
 
